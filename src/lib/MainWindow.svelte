@@ -5,7 +5,7 @@
     import RightPanel from "./RightPanel.svelte";
     import Stage from "./Stage.svelte";
     import Toolbox from "./Toolbox.svelte";
-    import  settings  from "./settings";
+    import settings from "./settings";
 
     function startDraggingHorizontalTrack() {
         document.body.style.cursor = 's-resize';
@@ -83,6 +83,7 @@
         display: flex;
         flex-direction: row;
         flex-grow: 1;
+        min-height: 0;
     }
 
     #toolbox {
@@ -101,9 +102,10 @@
     #stage {
         flex-grow: 1;
         flex-shrink: 1;
+        min-height: 0;
     }
 
-    #right {
+    #bottom, #right {
         flex-grow: 0;
         flex-shrink: 0;
     }
