@@ -1,11 +1,9 @@
 interface Stage {
+    height:number;
     svg: SVGElement;
-    replaceContent(svg:string):void;
+    width:number;
+    replaceStageSvg(svg:string):void;
 }
 
-let stage: Stage = null as any as Stage;
+let stage: Stage = {} as Stage;
 export default stage;
-
-export function setStage(newStage: Stage) {
-    stage = newStage;
-}
