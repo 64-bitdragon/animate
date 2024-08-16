@@ -2,13 +2,14 @@
     import MainWindow from "./lib/MainWindow.svelte";
 </script>
 
-<main>
+<app>
   <MainWindow />
-</main>
+</app>
 
 <style lang="scss">
-  main {
+  app {
     width: 100%;
     height: 100%;
+    display: block;
   }
 </style>
