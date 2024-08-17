@@ -1,5 +1,6 @@
 <script lang="ts">
     import MainWindow from "./lib/MainWindow.svelte";
+    import 'tippy.js/dist/tippy.css';
 </script>
 
 <app>

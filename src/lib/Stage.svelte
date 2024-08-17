@@ -1,15 +1,16 @@
 <script lang="ts">
-    import { onMount } from "svelte";
+    import { onMount, tick } from "svelte";
     import stage from "./stage";
     import blackboard from "./blackboard";
 
     let scale = 1;
+    let stageElement:HTMLElement;
 
     onMount(() => {
         refreshStageFromSvg();
 
         // start observing for resize
-        resize_ob.observe(document.querySelector("stage")!);
+        resize_ob.observe(stageElement);
         blackboard.zoom.subscribe((x) => {
             scale = x / 100;
             console.log(scale);
@@ -18,7 +19,7 @@
     });
 
     function refreshStageFromSvg() {
-        stage.svg = document.querySelector("stage svg")!;
+        stage.svg = stageElement.querySelector("svg")!;
 
         let viewBox = stage.svg.getAttribute("viewBox")!;
         let parts = viewBox.split(" ");
@@ -29,16 +30,63 @@
     stage.replaceStageSvg = function (svg: string) {
         stage.svg.outerHTML = svg;
         refreshStageFromSvg();
-    };
+    }
+
+    stage.zoomAtPoint = async function(newZoom:number, x:number, y:number) {
+        let global = stage.svgSpaceToGlobalSpace(x, y);
+
+        blackboard.zoom.next(newZoom);
+        await tick();
+
+        let newGlobal = stage.svgSpaceToGlobalSpace(x, y);
+        stageElement.scrollBy(newGlobal.x - global.x, newGlobal.y - global.y);
+    }
+
+    stage.zoomCenter = async function(newZoom:number) {
+        
+    }
+
+    stage.svgSpaceToGlobalSpace = function(x:number, y:number):{x:number, y:number} {
+        let svgRect = stage.svg.getBoundingClientRect();
+        let svgWidth = stage.width;
+
+        // svgSpace to stageSpace, and then add on the svg offset to make it global
+        return {
+            x: (x * svgRect.width) / svgWidth + svgRect.x,
+            y: (y * svgRect.width) / svgWidth + svgRect.y
+        };
+    }
+
+    stage.svgSpaceToStageSpace = function(x:number, y:number):{x:number, y:number} {
+        let stageWidth = stage.svg.getBoundingClientRect().width;
+        let svgWidth = stage.width;
+
+        // hint: the aspect ratio of the stage and svg are the same
+        // so stageWidth/svgWidth == stageHeight/svgHeight
+        return {
+            x: (x * stageWidth) / svgWidth,
+            y: (y * stageWidth) / svgWidth
+        };
+    }
+
+    stage.stageSpaceToSvgSpace = function(x:number, y:number):{x:number, y:number} {
+        let stageWidth = stage.svg.getBoundingClientRect().width;
+        let svgWidth = stage.width;
+
+        // hint: the aspect ratio of the stage and svg are the same
+        // so svgWidth/stageWidth == svgHeight/stageHeight
+        return {
+            x: (x * svgWidth) / stageWidth,
+            y: (y * svgWidth) / stageWidth
+        };
+    }
 
     const resize_ob = new ResizeObserver(() => {
         relayout();
     });
 
     function relayout() {
-        let containerRect = document
-            .querySelector("stage")!
-            .getBoundingClientRect();
+        let containerRect = stageElement.getBoundingClientRect();
 
         let containerAspect = containerRect.width / containerRect.height;
         let stageAspect = stage.width / stage.height;
@@ -65,7 +113,7 @@
 </script>
 
 <!-- svelte-ignore component-name-lowercase -->
-<stage style="overflow: {scale > 1 ? 'scroll' : 'hidden'}">
+<stage bind:this={stageElement} style="overflow: {scale > 1 ? 'scroll' : 'hidden'}">
     <svg
         xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
         xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"

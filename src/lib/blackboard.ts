@@ -1,6 +1,7 @@
-import { writable } from "svelte/store";
+
+import { BehaviorSubject } from "rxjs";
 
 namespace blackboard {
-    export let zoom = writable(100);
+    export let zoom = new BehaviorSubject(100);
 }
 export default blackboard;

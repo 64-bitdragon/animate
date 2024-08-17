@@ -4,14 +4,16 @@
     let zoom = 100;
     blackboard.zoom.subscribe(x => zoom = x);
 
-    let zoomOptions = [50, 75, 100, 150, 200, 300];
+    const defaultOptions = [50, 75, 100, 150, 200, 300];
+    let zoomOptions = defaultOptions;
     $: {
+        zoomOptions = [...defaultOptions];
         if (!zoomOptions.includes(zoom)) {
             zoomOptions.push(zoom);
             zoomOptions.sort((a, b) => a - b);
         }
 
-        blackboard.zoom.set(zoom);
+        blackboard.zoom.next(zoom);
         console.log(zoomOptions);
     }
 </script>
