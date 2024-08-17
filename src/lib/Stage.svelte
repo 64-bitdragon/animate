@@ -4,22 +4,21 @@
     import blackboard from "./blackboard";
 
     let scale = 1;
-    let stageElement:HTMLElement;
+    let stageContainer: HTMLElement;
 
     onMount(() => {
         refreshStageFromSvg();
 
         // start observing for resize
-        resize_ob.observe(stageElement);
+        resize_ob.observe(stageContainer);
         blackboard.zoom.subscribe((x) => {
             scale = x / 100;
-            console.log(scale);
             relayout();
         });
     });
 
     function refreshStageFromSvg() {
-        stage.svg = stageElement.querySelector("svg")!;
+        stage.svg = stageContainer.querySelector("svg")!;
 
         let viewBox = stage.svg.getAttribute("viewBox")!;
         let parts = viewBox.split(" ");
@@ -30,34 +29,60 @@
     stage.replaceStageSvg = function (svg: string) {
         stage.svg.outerHTML = svg;
         refreshStageFromSvg();
-    }
+    };
 
-    stage.zoomAtPoint = async function(newZoom:number, x:number, y:number) {
+    stage.zoomAtPoint = async function (newZoom: number, x: number, y: number) {
         let global = stage.svgSpaceToGlobalSpace(x, y);
 
         blackboard.zoom.next(newZoom);
         await tick();
 
         let newGlobal = stage.svgSpaceToGlobalSpace(x, y);
-        stageElement.scrollBy(newGlobal.x - global.x, newGlobal.y - global.y);
-    }
+        stageContainer.scrollBy(newGlobal.x - global.x, newGlobal.y - global.y);
+    };
 
-    stage.zoomCenter = async function(newZoom:number) {
+    stage.zoomCenter = function (newZoom: number) {
+        let stageContainerRect = stageContainer.getBoundingClientRect();
+
+        let globalX = stageContainerRect.x + stageContainerRect.width / 2;
+        let globalY = stageContainerRect.y + stageContainerRect.height / 2;
         
-    }
+        let svgCenter = stage.globalSpaceToSvgSpace(globalX, globalY);
+        stage.zoomAtPoint(newZoom, svgCenter.x, svgCenter.y);
+    };
 
-    stage.svgSpaceToGlobalSpace = function(x:number, y:number):{x:number, y:number} {
+    stage.globalSpaceToSvgSpace = function (
+        x: number,
+        y: number,
+    ): { x: number; y: number } {
+        let svgRect = stage.svg.getBoundingClientRect();
+        let svgWidth = stage.width;
+
+        // svgSpace to stageSpace, and then add on the svg offset to make it global
+        return {
+            x: ((x - svgRect.x) * svgWidth) / svgRect.width,
+            y: ((y - svgRect.y) * svgWidth) / svgRect.width,
+        };
+    };
+
+    stage.svgSpaceToGlobalSpace = function (
+        x: number,
+        y: number,
+    ): { x: number; y: number } {
         let svgRect = stage.svg.getBoundingClientRect();
         let svgWidth = stage.width;
 
         // svgSpace to stageSpace, and then add on the svg offset to make it global
         return {
             x: (x * svgRect.width) / svgWidth + svgRect.x,
-            y: (y * svgRect.width) / svgWidth + svgRect.y
+            y: (y * svgRect.width) / svgWidth + svgRect.y,
         };
-    }
+    };
 
-    stage.svgSpaceToStageSpace = function(x:number, y:number):{x:number, y:number} {
+    stage.svgSpaceToStageSpace = function (
+        x: number,
+        y: number,
+    ): { x: number; y: number } {
         let stageWidth = stage.svg.getBoundingClientRect().width;
         let svgWidth = stage.width;
 
@@ -65,11 +90,14 @@
         // so stageWidth/svgWidth == stageHeight/svgHeight
         return {
             x: (x * stageWidth) / svgWidth,
-            y: (y * stageWidth) / svgWidth
+            y: (y * stageWidth) / svgWidth,
         };
-    }
+    };
 
-    stage.stageSpaceToSvgSpace = function(x:number, y:number):{x:number, y:number} {
+    stage.stageSpaceToSvgSpace = function (
+        x: number,
+        y: number,
+    ): { x: number; y: number } {
         let stageWidth = stage.svg.getBoundingClientRect().width;
         let svgWidth = stage.width;
 
@@ -77,16 +105,16 @@
         // so svgWidth/stageWidth == svgHeight/stageHeight
         return {
             x: (x * svgWidth) / stageWidth,
-            y: (y * svgWidth) / stageWidth
+            y: (y * svgWidth) / stageWidth,
         };
-    }
+    };
 
     const resize_ob = new ResizeObserver(() => {
         relayout();
     });
 
     function relayout() {
-        let containerRect = stageElement.getBoundingClientRect();
+        let containerRect = stageContainer.getBoundingClientRect();
 
         let containerAspect = containerRect.width / containerRect.height;
         let stageAspect = stage.width / stage.height;
@@ -113,7 +141,10 @@
 </script>
 
 <!-- svelte-ignore component-name-lowercase -->
-<stage bind:this={stageElement} style="overflow: {scale > 1 ? 'scroll' : 'hidden'}">
+<stage_container
+    bind:this={stageContainer}
+    style="overflow: {scale > 1 ? 'scroll' : 'hidden'}"
+>
     <svg
         xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
         xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
@@ -158,10 +189,10 @@
             /></g
         ></svg
     >
-</stage>
+</stage_container>
 
 <style lang="scss">
-    stage {
+    stage_container {
         display: flex;
         height: 100%;
         position: relative;

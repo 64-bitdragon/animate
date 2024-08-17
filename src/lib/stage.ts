@@ -8,6 +8,7 @@ interface Stage {
     svgSpaceToStageSpace(x:number, y:number):{x:number, y:number};
 
     svgSpaceToGlobalSpace(x:number, y:number):{x:number, y:number};
+    globalSpaceToSvgSpace(x:number, y:number):{x:number, y:number};
 
     // x and y are in svg space
     zoomAtPoint(newZoom:number, x:number, y:number):void;

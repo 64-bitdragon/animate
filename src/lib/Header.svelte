@@ -1,5 +1,6 @@
 <script lang="ts">
     import blackboard from "./blackboard";
+    import stage from "./stage";
 
     let zoom = 100;
     blackboard.zoom.subscribe(x => zoom = x);
@@ -12,9 +13,10 @@
             zoomOptions.push(zoom);
             zoomOptions.sort((a, b) => a - b);
         }
-
-        blackboard.zoom.next(zoom);
-        console.log(zoomOptions);
+        
+        if(blackboard.zoom.value != zoom) {
+            stage.zoomCenter(zoom);
+        }
     }
 </script>
 
