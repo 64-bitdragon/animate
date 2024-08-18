@@ -79,6 +79,10 @@
         flex-direction: column;
     }
 
+    #menu {
+        z-index: 1;
+    }
+
     #not_menu {
         display: flex;
         flex-direction: row;

@@ -1,11 +1,12 @@
 <script lang="ts">
     import blackboard from "./blackboard";
     import stage from "./stage";
+    import zoomHelper from "./util/zoom_helper";
 
     let zoom = 100;
     blackboard.zoom.subscribe(x => zoom = x);
 
-    const defaultOptions = [50, 75, 100, 150, 200, 300];
+    const defaultOptions = zoomHelper.defaultOptions;
     let zoomOptions = defaultOptions;
     $: {
         zoomOptions = [...defaultOptions];
@@ -13,7 +14,7 @@
             zoomOptions.push(zoom);
             zoomOptions.sort((a, b) => a - b);
         }
-        
+
         if(blackboard.zoom.value != zoom) {
             stage.zoomCenter(zoom);
         }

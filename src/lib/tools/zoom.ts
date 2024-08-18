@@ -1,5 +1,6 @@
 import blackboard from "../blackboard";
 import stage from "../stage";
+import zoomHelper from "../util/zoom_helper";
 import type { ITool } from "./tool.interface";
 
 export class ZoomTool implements ITool {
@@ -13,6 +14,6 @@ export class ZoomTool implements ITool {
 
     onClick(e:MouseEvent) {
         let svgPoint = stage.stageSpaceToSvgSpace(e.offsetX, e.offsetY);
-        stage.zoomAtPoint(blackboard.zoom.value + 100, svgPoint.x, svgPoint.y);
+        stage.zoomAtPoint(zoomHelper.getNextZoomInValue(blackboard.zoom.value), svgPoint.x, svgPoint.y);
     }
 }
