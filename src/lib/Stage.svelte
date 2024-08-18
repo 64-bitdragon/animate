@@ -138,10 +138,25 @@
         stage.svg.style.width = newWidth + "px";
         stage.svg.style.height = newHeight + "px";
     }
+
+    function onMouseWheel(e:WheelEvent) {
+        if(!e.ctrlKey) {
+            return;
+        }
+        
+        e.preventDefault();
+
+        let amount = e.deltaY > 0
+            ? -10
+            : 10;
+
+        let svgPoint = stage.stageSpaceToSvgSpace(e.offsetX, e.offsetY);
+        stage.zoomAtPoint(blackboard.zoom.value + amount, svgPoint.x, svgPoint.y);
+    }
 </script>
 
 <!-- svelte-ignore component-name-lowercase -->
-<stage_container
+<stage_container on:mousewheel={onMouseWheel}
     bind:this={stageContainer}
     style="overflow: {scale > 1 ? 'scroll' : 'hidden'}"
 >
