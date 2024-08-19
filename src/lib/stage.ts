@@ -1,5 +1,6 @@
 interface Stage {
     height:number;
+    svgContainer: HTMLElement;
     svg: SVGElement;
     width:number;
     replaceStageSvg(svg:string):void;

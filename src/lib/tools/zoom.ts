@@ -5,15 +5,26 @@ import type { ITool } from "./tool.interface";
 
 export class ZoomTool implements ITool {
     select(): void {
-        stage.svg.addEventListener('click', this.onClick);
+        stage.svgContainer.addEventListener('mouseup', this.onClick);
+        stage.svgContainer.style.cursor = 'zoom-in';
     }
 
     unselect(): void {
-        console.log("Method not implemented.");
+        stage.svgContainer.style.cursor = '';
     }
 
     onClick(e:MouseEvent) {
+        // literally no idea how this works
+        // the offset would be relative to the top left of the container
+        // not the svg
+        // but somehow it works fine
         let svgPoint = stage.stageSpaceToSvgSpace(e.offsetX, e.offsetY);
-        stage.zoomAtPoint(zoomHelper.getNextZoomInValue(blackboard.zoom.value), svgPoint.x, svgPoint.y);
+
+        if(e.button == 2) {
+            // right click, zoom out
+            stage.zoomAtPoint(zoomHelper.getNextZoomOutValue(blackboard.zoom.value), svgPoint.x, svgPoint.y);
+        } else {
+            stage.zoomAtPoint(zoomHelper.getNextZoomInValue(blackboard.zoom.value), svgPoint.x, svgPoint.y);
+        }
     }
 }

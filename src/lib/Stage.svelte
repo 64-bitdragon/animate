@@ -8,6 +8,7 @@
 
     onMount(() => {
         refreshStageFromSvg();
+        stage.svgContainer = stageContainer;
 
         // start observing for resize
         resize_ob.observe(stageContainer);

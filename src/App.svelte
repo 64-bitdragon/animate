@@ -1,6 +1,10 @@
 <script lang="ts">
-    import MainWindow from "./lib/MainWindow.svelte";
-    import 'tippy.js/dist/tippy.css';
+  import MainWindow from "./lib/MainWindow.svelte";
+  import "tippy.js/dist/tippy.css";
+
+  window.oncontextmenu = function () {
+    return false; // cancel default menu
+  };
 </script>
 
 <app>
