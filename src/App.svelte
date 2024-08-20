@@ -1,4 +1,5 @@
 <script lang="ts">
+    import CommandPalette from "./lib/CommandPalette.svelte";
   import MainWindow from "./lib/MainWindow.svelte";
   import "tippy.js/dist/tippy.css";
 
@@ -8,6 +9,7 @@
 </script>
 
 <app>
+  <CommandPalette />
   <MainWindow />
 </app>
 
