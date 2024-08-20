@@ -153,7 +153,7 @@
 
     function initializeCommands() {
         addCommand("resetZoom", "()", () => stage.zoomCenter(100));
-        addCommand("setZoom", "(value:number)", (value) =>
+        addCommand("setZoom", "(value:number)", (value:number) =>
             stage.zoomCenter(value),
         );
         addCommand("zoomIn", "()", () =>
