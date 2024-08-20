@@ -58,6 +58,7 @@
     }
 </script>
 
+<div id="blocker" style:display={currentlyOpen ? "" : "none"}></div>
 <menuBar bind:this={menuBar}>
     {#each items as item}
         <!-- svelte-ignore a11y-mouse-events-have-key-events -->
@@ -95,6 +96,15 @@
 
         & > button {
         }
+    }
+
+    #blocker {
+        position: absolute;
+        width: 100vw;
+        height: 100vh;
+        background-color: transparent;
+        top: 0;
+        left: 0;
     }
 
     .open_button {
