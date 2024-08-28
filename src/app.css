@@ -36,3 +36,9 @@ body {
     background-color: #ffffff;
   }
 }
+
+/* overlay stuff */
+svg#overlay rect {
+  stroke: rgb(0, 89, 119);
+  fill: #7799dd77;
+}

@@ -2,9 +2,13 @@
     import { onMount, tick } from "svelte";
     import stage from "./stage";
     import blackboard from "./blackboard";
+    import StageOverlay from "./StageOverlay.svelte";
 
     let scale = 1;
+    let stageOverlay: HTMLElement;
     let stageContainer: HTMLElement;
+    let stageWidth = 1;
+    let stageHeight = 1;
 
     onMount(() => {
         refreshStageFromSvg();
@@ -47,23 +51,101 @@
 
         let globalX = stageContainerRect.x + stageContainerRect.width / 2;
         let globalY = stageContainerRect.y + stageContainerRect.height / 2;
-        
+
         let svgCenter = stage.globalSpaceToSvgSpace(globalX, globalY);
         stage.zoomAtPoint(newZoom, svgCenter.x, svgCenter.y);
+    };
+
+    stage.zoomToRect = async function (
+        x: number,
+        y: number,
+        width: number,
+        height: number,
+    ) {
+        let containerRect = stageContainer.getBoundingClientRect();
+        let containerAspect = containerRect.width / containerRect.height;
+        let stageAspect = stage.width / stage.height;
+
+        let scale: number;
+        if (containerRect.width / containerRect.height < width / height) {
+            if (containerAspect > stageAspect) {
+                let newWidth = ((containerRect.width - 20) * stage.width) / width;
+                let newHeight = newWidth / stageAspect;
+                scale = newHeight / containerRect.height;
+            } else {
+                scale = stage.width / width;
+            }
+        } else {
+            if (containerAspect > stageAspect) {
+                scale = stage.height / height;
+            } else {
+                let newHeight = ((containerRect.height - 20) * stage.height) / height;
+                let newWidth = newHeight * stageAspect;
+                scale = newWidth / containerRect.width;
+            }
+        }
+
+        blackboard.zoom.next(scale * 100);
+        await tick();
+
+        let globalZoomRectCenter = stage.svgSpaceToGlobalSpace(x + width / 2, y + height / 2);
+        
+        let globalStageContainerCenterX = containerRect.x + containerRect.width / 2;
+        let globalStageContainerCenterY = containerRect.y + containerRect.height / 2;
+
+        stageContainer.scrollBy(
+            globalZoomRectCenter.x - globalStageContainerCenterX,
+            globalZoomRectCenter.y - globalStageContainerCenterY,
+        );
+    };
+
+    stage.globalSpaceToStageSpace = function (
+        x: number,
+        y: number,
+    ): { x: number; y: number } {
+        let stageContainerRect = stageOverlay.getBoundingClientRect();
+
+        return {
+            x: x - stageContainerRect.x,
+            y: y - stageContainerRect.y,
+        };
+    };
+
+    stage.stageSpaceToGlobalSpace = function (
+        x: number,
+        y: number,
+    ): { x: number; y: number } {
+        let stageContainerRect = stageOverlay.getBoundingClientRect();
+
+        return {
+            x: stageContainerRect.x + x,
+            y: stageContainerRect.y + y,
+        };
     };
 
     stage.globalSpaceToSvgSpace = function (
         x: number,
         y: number,
-    ): { x: number; y: number } {
+        width?: number,
+        height?: number,
+    ): { x: number; y: number; width?: number; height?: number } {
         let svgRect = stage.svg.getBoundingClientRect();
         let svgWidth = stage.width;
-
-        // svgSpace to stageSpace, and then add on the svg offset to make it global
-        return {
+        
+        let ret: any = {
             x: ((x - svgRect.x) * svgWidth) / svgRect.width,
             y: ((y - svgRect.y) * svgWidth) / svgRect.width,
         };
+
+        if (width) {
+            ret.width = (width * svgWidth) / svgRect.width;
+        }
+
+        if (height) {
+            ret.height = (height * svgWidth) / svgRect.width;
+        }
+
+        return ret;
     };
 
     stage.svgSpaceToGlobalSpace = function (
@@ -84,15 +166,8 @@
         x: number,
         y: number,
     ): { x: number; y: number } {
-        let stageWidth = stage.svg.getBoundingClientRect().width;
-        let svgWidth = stage.width;
-
-        // hint: the aspect ratio of the stage and svg are the same
-        // so stageWidth/svgWidth == stageHeight/svgHeight
-        return {
-            x: (x * stageWidth) / svgWidth,
-            y: (y * stageWidth) / svgWidth,
-        };
+        let temp = stage.svgSpaceToGlobalSpace(x, y);
+        return stage.globalSpaceToStageSpace(temp.x, temp.y);
     };
 
     stage.stageSpaceToSvgSpace = function (
@@ -132,6 +207,11 @@
             newHeight = newWidth / stageAspect;
         }
 
+        stageOverlay.style.width = `max(100%, ${newWidth + 10}px)`;
+        stageOverlay.style.height = `max(100%, ${newHeight + 10}px)`;
+        stageWidth = Math.max(containerRect.width, newWidth + 10);
+        stageHeight = Math.max(containerRect.height, newHeight + 10);
+
         stage.svg.style.left =
             Math.max((containerRect.width - newWidth) / 2, 10) + "px";
         stage.svg.style.top =
@@ -140,24 +220,28 @@
         stage.svg.style.height = newHeight + "px";
     }
 
-    function onMouseWheel(e:WheelEvent) {
-        if(!e.ctrlKey) {
+    function onMouseWheel(e: WheelEvent) {
+        if (!e.ctrlKey) {
             return;
         }
-        
+
         e.preventDefault();
 
-        let amount = e.deltaY > 0
-            ? -10
-            : 10;
+        let amount = e.deltaY > 0 ? -10 : 10;
 
-        let svgPoint = stage.stageSpaceToSvgSpace(e.offsetX, e.offsetY);
-        stage.zoomAtPoint(blackboard.zoom.value + amount, svgPoint.x, svgPoint.y);
+        let svgPoint = stage.globalSpaceToSvgSpace(e.clientX, e.clientY);
+        
+        stage.zoomAtPoint(
+            blackboard.zoom.value + amount,
+            svgPoint.x,
+            svgPoint.y,
+        );
     }
 </script>
 
 <!-- svelte-ignore component-name-lowercase -->
-<stage_container on:mousewheel={onMouseWheel}
+<stage_container
+    on:mousewheel={onMouseWheel}
     bind:this={stageContainer}
     style="overflow: {scale > 1 ? 'scroll' : 'hidden'}"
 >
@@ -205,6 +289,9 @@
             /></g
         ></svg
     >
+    <div id="stage_overlay" bind:this={stageOverlay}>
+        <StageOverlay width={stageWidth} height={stageHeight}></StageOverlay>
+    </div>
 </stage_container>
 
 <style lang="scss">
@@ -215,7 +302,11 @@
 
         border: 1px solid white;
         color: white;
-        padding: 10px;
+    }
+
+    #stage_overlay {
+        position: absolute;
+        overflow: hidden;
     }
 
     svg {

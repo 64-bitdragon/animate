@@ -4,7 +4,7 @@
     import zoomHelper from "./util/zoom_helper";
 
     let zoom = 100;
-    blackboard.zoom.subscribe(x => zoom = x);
+    blackboard.zoom.subscribe(x => zoom = Math.round(x));
 
     const defaultOptions = zoomHelper.defaultOptions;
     let zoomOptions = defaultOptions;
@@ -15,7 +15,7 @@
             zoomOptions.sort((a, b) => a - b);
         }
 
-        if(blackboard.zoom.value != zoom) {
+        if(Math.round(blackboard.zoom.value) != zoom) {
             stage.zoomCenter(zoom);
         }
     }
