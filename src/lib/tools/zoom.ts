@@ -32,7 +32,6 @@ export class ZoomTool implements ITool {
         //this is for mouseDown on the scroll bars
         let svgContainerRect = stage.svgContainer.getBoundingClientRect();
 
-        console.log(e.clientX, svgContainerRect.x + stage.svgContainer.clientWidth);
         if(e.clientX > svgContainerRect.x + stage.svgContainer.clientWidth) {
             return;
         }
