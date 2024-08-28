@@ -78,7 +78,7 @@ export class ZoomTool implements ITool {
         // pythag, without the final square root
         let diff = (e.clientX - globalX) ** 2 + (e.clientY - globalY) ** 2;
         
-        if(diff < 25) {
+        if(diff < 300) {
             // user clicked, rather than drawing a box
 
             let svgPoint = stage.globalSpaceToSvgSpace(e.clientX, e.clientY);
